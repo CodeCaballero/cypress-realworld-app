@@ -191,6 +191,25 @@ export const formatAmountRangeValues = (amountRangeValues: number[]) =>
   /* istanbul ignore next */
   flow(map(padAmountWithZeros), map(formatAmountSlider), join(" - "))(amountRangeValues);
 
+const csvEscape = (value: string | number | Date) => {
+  const stringValue = String(value ?? "");
+  return /[",\n]/.test(stringValue) ? `"${stringValue.replace(/"/g, '""')}"` : stringValue;
+};
+
+export const transactionsToCsv = (transactions: TransactionResponseItem[]) => {
+  const header = ["Date", "Sender", "Receiver", "Amount", "Description", "Status"];
+  const rows = transactions.map((transaction) => [
+    transaction.createdAt,
+    transaction.senderName,
+    transaction.receiverName,
+    formatAmount(transaction.amount),
+    transaction.description,
+    transaction.status,
+  ]);
+
+  return [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+};
+
 export const getPaginatedItems = (page: number, limit: number, items: any) => {
   const offset = (page - 1) * limit;
   const pagedItems = drop(offset, items).slice(0, limit);
