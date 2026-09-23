@@ -1,0 +1,25 @@
+name: Notify Test Generation
+
+# When a PR gets the `generate-tests` label (also fires if the PR is opened
+# with the label already set), ask CodeCaballero/python-playwright to generate
+# tests for it with Claude Code (its app-pr-generate-tests.yml workflow).
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  notify:
+    if: github.event.label.name == 'generate-tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to test repo
+        env:
+          GH_TOKEN: ${{ secrets.TEST_REPO_TOKEN }}
+        run: |
+          gh api repos/CodeCaballero/python-playwright/dispatches \
+            -f event_type=app-pr-generate-tests \
+            -F "client_payload[repo]=${{ github.repository }}" \
+            -F "client_payload[head_sha]=${{ github.event.pull_request.head.sha }}" \
+            -F "client_payload[base_ref]=${{ github.event.pull_request.base.ref }}" \
+            -F "client_payload[pr_number]=${{ github.event.pull_request.number }}"
