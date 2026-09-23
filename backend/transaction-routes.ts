@@ -21,7 +21,7 @@ import {
   isTransactionPatchValidator,
   isTransactionPublicQSValidator,
 } from "./validators";
-import { getPaginatedItems } from "../src/utils/transactionUtils";
+import { getPaginatedItems, transactionsToCsv } from "../src/utils/transactionUtils";
 const router = express.Router();
 
 // Routes
@@ -130,6 +130,27 @@ router.get(
       },
       results: paginatedItems,
     });
+  }
+);
+
+//GET /transactions/export - scoped user, auth-required
+router.get(
+  "/export",
+  ensureAuthenticated,
+  validateMiddleware([
+    sanitizeTransactionStatus,
+    sanitizeRequestStatus,
+    ...isTransactionQSValidator,
+  ]),
+  (req, res) => {
+    /* istanbul ignore next */
+    const transactions = getTransactionsForUserForApi(req.user?.id!, req.query);
+    const csv = transactionsToCsv(transactions);
+
+    res.status(200);
+    res.set("Content-Type", "text/csv");
+    res.set("Content-Disposition", `attachment; filename="transactions.csv"`);
+    res.send(csv);
   }
 );
 

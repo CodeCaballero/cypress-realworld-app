@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { Paper, Grid } from "@mui/material";
+import { Paper, Grid, Button } from "@mui/material";
 import { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
 import TransactionListDateRangeFilter from "./TransactionDateRangeFilter";
 import TransactionListAmountRangeFilter from "./TransactionListAmountRangeFilter";
@@ -25,12 +25,14 @@ export type TransactionListFiltersProps = {
   sendFilterEvent: Function;
   dateRangeFilters: TransactionDateRangePayload;
   amountRangeFilters: TransactionAmountRangePayload;
+  onExport?: () => void;
 };
 
 const TransactionListFilters: React.FC<TransactionListFiltersProps> = ({
   sendFilterEvent,
   dateRangeFilters,
   amountRangeFilters,
+  onExport,
 }) => {
   const filterDateRange = (payload: TransactionDateRangePayload) =>
     sendFilterEvent("DATE_FILTER", payload);
@@ -64,6 +66,18 @@ const TransactionListFilters: React.FC<TransactionListFiltersProps> = ({
             resetAmountRange={resetAmountRange}
           />
         </Grid>
+        {onExport && (
+          <Grid item sx={{ marginLeft: "auto" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              data-test="transaction-list-export-button"
+              onClick={onExport}
+            >
+              Export CSV
+            </Button>
+          </Grid>
+        )}
       </Grid>
     </StyledPaper>
   );

@@ -8,6 +8,8 @@ import { transactionFiltersMachine } from "../machines/transactionFiltersMachine
 import { getDateQueryFields, getAmountQueryFields } from "../utils/transactionUtils";
 import TransactionPersonalList from "../components/TransactionPersonalList";
 import TransactionPublicList from "../components/TransactionPublicList";
+import { httpClient } from "../utils/asyncUtils";
+import { backendPort } from "../utils/portUtils";
 
 const TransactionsContainer: React.FC = () => {
   const [currentFilters, sendFilterEvent] = useMachine(transactionFiltersMachine);
@@ -28,6 +30,31 @@ const TransactionsContainer: React.FC = () => {
     />
   );
 
+  const exportPersonalTransactions = async () => {
+    const response = await httpClient.get(`http://localhost:${backendPort}/transactions/export`, {
+      params: { ...dateRangeFilters, ...amountRangeFilters },
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "transactions.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const PersonalFilters = (
+    <TransactionListFilters
+      dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
+      amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
+      sendFilterEvent={sendFilterEvent}
+      onExport={exportPersonalTransactions}
+    />
+  );
+
   return (
     <Switch>
       <Route exact path="/contacts">
@@ -39,7 +66,7 @@ const TransactionsContainer: React.FC = () => {
       </Route>
       <Route exact path="/personal">
         <TransactionPersonalList
-          filterComponent={Filters}
+          filterComponent={PersonalFilters}
           dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
           amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
         />
